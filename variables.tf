@@ -8,6 +8,12 @@ variable "vm_name" {
   type        = string
 }
 
+variable "cloudinit_template" {
+  description = "The name of the cloudinit template to clone from"
+  type        = string
+  default     = "cloudinit-debian-13-trixie"
+}
+
 variable "size" {
   description = "The size of the VM (nano, small, medium, large, xlarge, highmem-medium, highmem-large, compute-large, compute-xlarge)"
   type        = string

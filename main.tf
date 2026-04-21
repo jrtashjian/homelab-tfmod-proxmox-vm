@@ -7,6 +7,14 @@ terraform {
   }
 }
 
+data "proxmox_virtual_environment_vms" "node" {
+  node_name = var.node_name
+}
+
+output "template" {
+  value = [for vm in data.proxmox_virtual_environment_vms.node.vms : vm.vm_id if vm.name == var.cloudinit_template][0]
+}
+
 locals {
   presets = {
     # Standard configurations.
@@ -27,38 +35,9 @@ locals {
 
   # Use override if provided, otherwise preset
   effective_disk = var.disk_size > 0 ? var.disk_size : local.presets[var.size].disk
-}
 
-data "proxmox_virtual_environment_datastores" "datastores" {
-  node_name = var.node_name
-}
-
-locals {
-  datastore_iso = [
-    for ds in data.proxmox_virtual_environment_datastores.datastores.datastores : ds.id
-    if contains(ds.content_types, "iso")
-  ][0]
-
-  datastore_snippets = [
-    for ds in data.proxmox_virtual_environment_datastores.datastores.datastores : ds.id
-    if contains(ds.content_types, "snippets")
-  ][0]
-}
-
-data "proxmox_virtual_environment_file" "debian_cloud_image" {
-  node_name    = var.node_name
-  datastore_id = local.datastore_iso
-
-  content_type = "iso"
-  file_name    = "debian-13-genericcloud-amd64.img"
-}
-
-data "proxmox_virtual_environment_file" "debian_vendor_config" {
-  node_name    = var.node_name
-  datastore_id = local.datastore_snippets
-
-  content_type = "snippets"
-  file_name    = "debian-vendor-config.yml"
+  # Find the cloudinit template VM to clone from.
+  cloudinit_vm = [for vm in data.proxmox_virtual_environment_vms.node.vms : vm if vm.name == var.cloudinit_template][0]
 }
 
 resource "proxmox_virtual_environment_vm" "base_vm" {
@@ -67,16 +46,11 @@ resource "proxmox_virtual_environment_vm" "base_vm" {
 
   name = var.vm_name
 
-  agent {
-    enabled = true
-  }
-
-  operating_system {
-    type = "l26"
+  clone {
+    vm_id = local.cloudinit_vm.vm_id
   }
 
   cpu {
-    type  = "x86-64-v2-AES"
     cores = local.presets[var.size].cpu
   }
 
@@ -86,25 +60,9 @@ resource "proxmox_virtual_environment_vm" "base_vm" {
 
   disk {
     datastore_id = "machines"
-    file_id      = data.proxmox_virtual_environment_file.debian_cloud_image.id
     size         = local.effective_disk
     interface    = "scsi0"
-    discard      = "on"
-    iothread     = true
   }
-
-  scsi_hardware = "virtio-scsi-single"
-  boot_order    = ["scsi0"]
-
-  network_device {
-    firewall = true
-  }
-
-  vga {
-    type = "serial0"
-  }
-
-  serial_device {}
 
   initialization {
     datastore_id = "machines"
@@ -121,7 +79,5 @@ resource "proxmox_virtual_environment_vm" "base_vm" {
         gateway = var.ipv4_gateway
       }
     }
-
-    vendor_data_file_id = data.proxmox_virtual_environment_file.debian_vendor_config.id
   }
 }
