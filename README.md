@@ -83,4 +83,4 @@ module "vm" {
 
 ## Requirements
 
-- Proxmox provider `bpg/proxmox` ≥ 0.101.0
+- Proxmox provider `bpg/proxmox` ≥ 0.103.0
