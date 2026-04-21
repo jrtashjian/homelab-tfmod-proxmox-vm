@@ -6,11 +6,21 @@ Terraform module to create reproducible Debian cloud-init VMs on Proxmox with pr
 
 ```hcl
 module "vm" {
-  source = "./modules/vm"
+  source = "git::git@gitlab.int.jrtashjian.com:homelab/tfmod-proxmox-vm.git"
+
+  node_name = "pve-node02"
+  vm_name   = "my-app"
 
   size               = "medium"
-  vm_name            = "my-app"
-  node_name          = "pve1"
+  cloudinit_template = "cloudinit-debian-13-trixie"
+
+  disks = [
+    {
+      datastore_id = "machines-fast"
+      size         = 5
+    }
+  ]
+
   ipv4_address       = "192.168.10.50/24"
   ipv4_gateway       = "192.168.10.1"
   ansible_user       = "ansible"
@@ -47,18 +57,20 @@ module "vm" {
 
 ## Variables
 
-| Name                  | Type           | Default     | Description |
-|-----------------------|----------------|-------------|-------------|
-| `node_name`           | string         | -           | Proxmox node name |
-| `vm_name`             | string         | -           | Hostname of the VM |
-| `size`                | string         | `"small"`   | Preset size (see tables above) |
-| `disk_size`           | number         | `0`         | Root disk size in GB; `0` uses the preset value |
-| `ipv4_address`        | string         | `"dhcp"`    | IPv4 address with CIDR or `"dhcp"` |
-| `ipv4_gateway`        | string         | `""`        | IPv4 gateway (required for static IP) |
-| `ansible_user`        | string         | -           | User account created via cloud-init |
-| `ansible_pass`        | string         | -           | User password (sensitive) |
-| `ansible_public_key`  | string         | -           | SSH public key for the user account |
-| `tags`                | list(string)   | `[]`        | Additional tags to apply to the VM |
+| Name                  | Type           | Default                          | Description |
+|-----------------------|----------------|----------------------------------|-------------|
+| `node_name`           | string         | -                                | Proxmox node name |
+| `vm_name`             | string         | -                                | Hostname of the VM |
+| `cloudinit_template`  | string         | `"cloudinit-debian-13-trixie"`   | Cloud-init template VM to clone from |
+| `size`                | string         | `"small"`                        | Preset size (see tables above) |
+| `disk_size`           | number         | `0`                              | Root disk size in GB; `0` uses the preset value |
+| `disks`               | list(object)   | `[]`                             | Additional disks (`datastore_id`, `size`) to attach to the VM |
+| `ipv4_address`        | string         | `"dhcp"`                         | IPv4 address with CIDR or `"dhcp"` |
+| `ipv4_gateway`        | string         | `""`                             | IPv4 gateway (required for static IP) |
+| `ansible_user`        | string         | -                                | User account created via cloud-init |
+| `ansible_pass`        | string         | -                                | User password (sensitive) |
+| `ansible_public_key`  | string         | -                                | SSH public key for the user account |
+| `tags`                | list(string)   | `[]`                             | Additional tags to apply to the VM |
 
 
 ## Requirements
