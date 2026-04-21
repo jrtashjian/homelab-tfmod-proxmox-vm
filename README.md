@@ -21,6 +21,13 @@ module "vm" {
     }
   ]
 
+  hostpcis = [
+    {
+      device_name = "GP104GL [Tesla P4]"
+      xvga        = true
+    }
+  ]
+
   ipv4_address       = "192.168.10.50/24"
   ipv4_gateway       = "192.168.10.1"
   ansible_user       = "ansible"
@@ -65,6 +72,7 @@ module "vm" {
 | `size`                | string         | `"small"`                        | Preset size (see tables above) |
 | `disk_size`           | number         | `0`                              | Root disk size in GB; `0` uses the preset value |
 | `disks`               | list(object)   | `[]`                             | Additional disks (`datastore_id`, `size`) to attach to the VM |
+| `hostpcis`            | list(object)   | `[]`                             | Host PCI devices to attach to the VM |
 | `ipv4_address`        | string         | `"dhcp"`                         | IPv4 address with CIDR or `"dhcp"` |
 | `ipv4_gateway`        | string         | `""`                             | IPv4 gateway (required for static IP) |
 | `ansible_user`        | string         | -                                | User account created via cloud-init |

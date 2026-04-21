@@ -2,17 +2,17 @@ terraform {
   required_providers {
     proxmox = {
       source  = "bpg/proxmox"
-      version = "0.101.0"
+      version = "0.103.0"
     }
   }
 }
 
-data "proxmox_virtual_environment_vms" "node" {
+data "proxmox_virtual_environment_vms" "all" {
   node_name = var.node_name
 }
 
-output "template" {
-  value = [for vm in data.proxmox_virtual_environment_vms.node.vms : vm.vm_id if vm.name == var.cloudinit_template][0]
+data "proxmox_hardware_pci" "all" {
+  node_name = var.node_name
 }
 
 locals {
@@ -37,7 +37,7 @@ locals {
   effective_disk = var.disk_size > 0 ? var.disk_size : local.presets[var.size].disk
 
   # Find the cloudinit template VM to clone from.
-  cloudinit_vm = [for vm in data.proxmox_virtual_environment_vms.node.vms : vm if vm.name == var.cloudinit_template][0]
+  cloudinit_vm = [for vm in data.proxmox_virtual_environment_vms.all.vms : vm if vm.name == var.cloudinit_template][0]
 }
 
 resource "proxmox_virtual_environment_vm" "base_vm" {
@@ -56,6 +56,7 @@ resource "proxmox_virtual_environment_vm" "base_vm" {
 
   memory {
     dedicated = local.presets[var.size].memory
+    floating  = local.presets[var.size].memory
   }
 
   disk {
@@ -73,6 +74,18 @@ resource "proxmox_virtual_environment_vm" "base_vm" {
       interface    = "scsi${disk.key + 1}"
       discard      = "on"
       iothread     = true
+    }
+  }
+
+  dynamic "hostpci" {
+    for_each = var.hostpcis
+
+    content {
+      device = "hostpci${hostpci.key}"
+      id     = coalesce(hostpci.value.id, [for device in data.proxmox_hardware_pci.all.devices : device.id if device.device_name == hostpci.value.device_name][0])
+      pcie   = true
+      rombar = hostpci.value.rombar
+      xvga   = hostpci.value.xvga
     }
   }
 

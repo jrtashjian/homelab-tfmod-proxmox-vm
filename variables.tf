@@ -40,6 +40,17 @@ variable "disks" {
   default = []
 }
 
+variable "hostpcis" {
+  description = "Host PCI devices to attach to the VM"
+  type = list(object({
+    device_name = string
+    id          = optional(string)
+    rombar      = optional(bool, true)
+    xvga        = optional(bool, false)
+  }))
+  default = []
+}
+
 variable "ipv4_address" {
   description = "The IPv4 address to assign to the VM"
   type        = string
