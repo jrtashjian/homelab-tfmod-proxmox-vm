@@ -64,6 +64,18 @@ resource "proxmox_virtual_environment_vm" "base_vm" {
     interface    = "scsi0"
   }
 
+  dynamic "disk" {
+    for_each = var.disks
+
+    content {
+      datastore_id = disk.value.datastore_id
+      size         = disk.value.size
+      interface    = "scsi${disk.key + 1}"
+      discard      = "on"
+      iothread     = true
+    }
+  }
+
   initialization {
     datastore_id = "machines"
 

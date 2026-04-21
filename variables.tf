@@ -31,6 +31,15 @@ variable "disk_size" {
   default     = 0 # 0 = use preset
 }
 
+variable "disks" {
+  description = "Additional disks to attach to the VM"
+  type = list(object({
+    datastore_id = string
+    size         = number
+  }))
+  default = []
+}
+
 variable "ipv4_address" {
   description = "The IPv4 address to assign to the VM"
   type        = string
