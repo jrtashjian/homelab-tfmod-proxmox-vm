@@ -60,7 +60,7 @@ resource "proxmox_virtual_environment_vm" "base_vm" {
   }
 
   disk {
-    datastore_id = "machines"
+    datastore_id = var.root_datastore_id
     size         = local.effective_disk
     interface    = "scsi0"
   }
@@ -90,7 +90,7 @@ resource "proxmox_virtual_environment_vm" "base_vm" {
   }
 
   initialization {
-    datastore_id = "machines"
+    datastore_id = var.root_datastore_id
 
     user_account {
       username = var.ansible_user

@@ -40,6 +40,12 @@ variable "disks" {
   default = []
 }
 
+variable "root_datastore_id" {
+  description = "The datastore ID for the root disk"
+  type        = string
+  default     = "machines"
+}
+
 variable "hostpcis" {
   description = "Host PCI devices to attach to the VM"
   type = list(object({

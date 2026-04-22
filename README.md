@@ -71,6 +71,7 @@ module "vm" {
 | `cloudinit_template`  | string         | `"cloudinit-debian-13-trixie"`   | Cloud-init template VM to clone from |
 | `size`                | string         | `"small"`                        | Preset size (see tables above) |
 | `disk_size`           | number         | `0`                              | Root disk size in GB; `0` uses the preset value |
+| `root_datastore_id`   | string         | `"machines"`                     | Datastore ID for the root disk |
 | `disks`               | list(object)   | `[]`                             | Additional disks (`datastore_id`, `size`) to attach to the VM |
 | `hostpcis`            | list(object)   | `[]`                             | Host PCI devices to attach to the VM |
 | `ipv4_address`        | string         | `"dhcp"`                         | IPv4 address with CIDR or `"dhcp"` |
