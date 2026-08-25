@@ -13,3 +13,8 @@ output "id" {
   description = "List of VM IDs created by the module."
   value       = tolist(proxmox_virtual_environment_vm.base_vm[*].id)[0]
 }
+
+output "node_name" {
+  description = "List of node names of the VM created by the module."
+  value       = tolist(proxmox_virtual_environment_vm.base_vm[*].node_name)[0]
+}
