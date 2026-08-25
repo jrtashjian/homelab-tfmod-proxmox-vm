@@ -8,3 +8,8 @@ output "ipv4_address" {
   # lo is the first interface, eth0 is the second.
   value = join(",", proxmox_virtual_environment_vm.base_vm[*].ipv4_addresses[1][0])
 }
+
+output "id" {
+  description = "List of VM IDs created by the module."
+  value       = tolist(proxmox_virtual_environment_vm.base_vm[*].id)[0]
+}
