@@ -12,6 +12,7 @@ data "proxmox_virtual_environment_vms" "all" {
 }
 
 data "proxmox_hardware_pci" "all" {
+  count     = length(var.hostpcis) > 0 ? 1 : 0
   node_name = var.node_name
 }
 
@@ -41,13 +42,21 @@ locals {
 }
 
 resource "proxmox_virtual_environment_vm" "base_vm" {
-  node_name = var.node_name
-  tags      = concat(["terraform", var.size], var.tags)
-
-  name = var.vm_name
+  node_name       = var.node_name
+  name            = var.name
+  tags            = concat(["terraform", var.size], var.tags)
+  stop_on_destroy = true
 
   clone {
     vm_id = local.cloudinit_vm.vm_id
+  }
+
+  agent {
+    enabled = true
+
+    wait_for_ip {
+      ipv4 = true
+    }
   }
 
   cpu {
@@ -82,11 +91,17 @@ resource "proxmox_virtual_environment_vm" "base_vm" {
 
     content {
       device = "hostpci${hostpci.key}"
-      id     = coalesce(hostpci.value.id, [for device in data.proxmox_hardware_pci.all.devices : device.id if device.device_name == hostpci.value.device_name][0])
+      id     = coalesce(hostpci.value.id, [for device in data.proxmox_hardware_pci.all[0].devices : device.id if device.device_name == hostpci.value.device_name][0])
       pcie   = true
       rombar = hostpci.value.rombar
       xvga   = hostpci.value.xvga
     }
+  }
+
+  network_device {
+    bridge   = var.bridge
+    vlan_id  = var.vlan_id
+    firewall = true
   }
 
   initialization {

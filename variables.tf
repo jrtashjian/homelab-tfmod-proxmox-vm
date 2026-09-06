@@ -3,7 +3,7 @@ variable "node_name" {
   type        = string
 }
 
-variable "vm_name" {
+variable "name" {
   description = "The name of the VM to create"
   type        = string
 }
@@ -57,6 +57,18 @@ variable "hostpcis" {
   default = []
 }
 
+variable "bridge" {
+  description = "Network bridge for the primary interface"
+  type        = string
+  default     = "vmbr0"
+}
+
+variable "vlan_id" {
+  description = "VLAN ID for the primary interface. Null means untagged."
+  type        = number
+  default     = null
+}
+
 variable "ipv4_address" {
   description = "The IPv4 address to assign to the VM"
   type        = string
@@ -66,7 +78,7 @@ variable "ipv4_address" {
 variable "ipv4_gateway" {
   description = "The IPv4 gateway to assign to the VM"
   type        = string
-  default     = ""
+  default     = null
 }
 
 variable "ansible_user" {

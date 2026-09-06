@@ -9,10 +9,13 @@ module "vm" {
   source = "git::git@gitlab.int.jrtashjian.com:homelab/tfmod-proxmox-vm.git"
 
   node_name = "pve-node02"
-  vm_name   = "my-app"
+  name      = "my-app"
 
   size               = "medium"
   cloudinit_template = "cloudinit-debian-13-trixie"
+
+  vlan_id = 66
+  bridge  = "vmbr0"
 
   disks = [
     {
@@ -30,7 +33,7 @@ module "vm" {
 
   ipv4_address       = "192.168.10.50/24"
   ipv4_gateway       = "192.168.10.1"
-  ansible_user       = "ansible"
+  ansible_user       = var.ansible_user
   ansible_pass       = var.ansible_pass
   ansible_public_key = var.ansible_public_key
 }
@@ -67,20 +70,29 @@ module "vm" {
 | Name                  | Type           | Default                          | Description |
 |-----------------------|----------------|----------------------------------|-------------|
 | `node_name`           | string         | -                                | Proxmox node name |
-| `vm_name`             | string         | -                                | Hostname of the VM |
+| `name`                | string         | -                                | Hostname of the VM |
 | `cloudinit_template`  | string         | `"cloudinit-debian-13-trixie"`   | Cloud-init template VM to clone from |
 | `size`                | string         | `"small"`                        | Preset size (see tables above) |
 | `disk_size`           | number         | `0`                              | Root disk size in GB; `0` uses the preset value |
 | `root_datastore_id`   | string         | `"machines"`                     | Datastore ID for the root disk |
 | `disks`               | list(object)   | `[]`                             | Additional disks (`datastore_id`, `size`) to attach to the VM |
 | `hostpcis`            | list(object)   | `[]`                             | Host PCI devices to attach to the VM |
+| `bridge`              | string         | `"vmbr0"`                        | Network bridge for the primary interface |
+| `vlan_id`             | number         | `null`                           | VLAN ID for the primary interface; omit for untagged |
 | `ipv4_address`        | string         | `"dhcp"`                         | IPv4 address with CIDR or `"dhcp"` |
-| `ipv4_gateway`        | string         | `""`                             | IPv4 gateway (required for static IP) |
+| `ipv4_gateway`        | string         | `null`                           | IPv4 gateway (required for static IP) |
 | `ansible_user`        | string         | -                                | User account created via cloud-init |
 | `ansible_pass`        | string         | -                                | User password (sensitive) |
 | `ansible_public_key`  | string         | -                                | SSH public key for the user account |
 | `tags`                | list(string)   | `[]`                             | Additional tags to apply to the VM |
 
+## Testing
+
+Live smoke test against the homelab. Creates a nano VM, asserts outputs, then destroys it.
+
+```bash
+op run --env-file=".env.example" -- terraform test
+```
 
 ## Requirements
 
