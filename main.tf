@@ -51,6 +51,12 @@ resource "proxmox_virtual_environment_vm" "base_vm" {
     vm_id = local.cloudinit_vm.vm_id
   }
 
+  lifecycle {
+    # Clone source is only relevant at creation. A recreated template
+    # (new vm_id) must not force replacement of running VMs.
+    ignore_changes = [clone]
+  }
+
   agent {
     enabled = true
 
